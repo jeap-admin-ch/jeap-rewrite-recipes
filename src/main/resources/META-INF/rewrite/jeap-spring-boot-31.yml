@@ -1,0 +1,84 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.JeapUpgradeSpringBoot_3_1
+displayName: Migrate jEAP app to Spring Boot 3.1
+description: 'Upgrade jEAP app to Spring Boot 3.1'
+tags:
+  - spring
+  - boot
+  - jeap
+recipeList:
+  # OpenRewrite Recipe for the Spring Boot 3.1 upgrade
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_1
+  # jEAP-specific / custom migrations
+  - ch.admin.bit.jeap.openrewrite.recipe.JeapUpgradeToParentWithSpringBoot_3_1
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.JeapUpgradeSpringBoot_3_1_Minimal
+displayName: Migrate jEAP app to Spring Boot 3.1 without Java 17 Migration
+description: 'Upgrade jEAP app to Spring Boot 3.1 without Java 17 Migration'
+tags:
+  - spring
+  - boot
+  - jeap
+recipeList:
+  # Recipe for the Spring Boot 3.1 upgrade without the Java 17 migration
+  - ch.admin.bit.jeap.openrewrite.recipe.UpgradeSpringBoot_3_1_NoJava17Migration
+  # jEAP-specific / custom migrations
+  - ch.admin.bit.jeap.openrewrite.recipe.JeapUpgradeToParentWithSpringBoot_3_1
+---
+# Custom jEAP recipe, re-used by minimal migration
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.JeapUpgradeToParentWithSpringBoot_3_1
+displayName: Migrate jEAP app with jEAP Parent to Spring Boot 3.1
+description: 'Upgrade jEAP app with jEAP Parent to Spring Boot 3.1'
+tags:
+  - spring
+  - boot
+  - jeap
+recipeList:
+  # Upgrade jEAP Spring Boot Parent
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: ch.admin.bit.jeap
+      artifactId: jeap-spring-boot-parent
+      newVersion: 20.5.0
+
+  # Logging patterns are configured in the jeap-spring-boot-starters. The Spring Cloud 2022 Migration recipe adds
+  # a logging.pattern.level property which we don't want.
+  - org.openrewrite.java.spring.DeleteSpringProperty:
+      propertyKey: logging.pattern.level
+
+  # The Java EE to Jakarta Migration adds this dependency, which is unnecessary for (most) jEAP-based microservices
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.glassfish.jaxb
+      artifactId: jaxb-runtime
+
+  # This upgrades commons-io to the current version if a fixed version is used. Pact requires at least 2.11.0
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: commons-io
+      artifactId: commons-io
+      newVersion: 2.13.0
+      overrideManagedVersion: false
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springdoc.core.GroupedOpenApi
+      newFullyQualifiedTypeName: org.springdoc.core.models.GroupedOpenApi
+      ignoreDefinition: true
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.apache.http.HttpHeaders
+      newFullyQualifiedTypeName: org.springframework.http.HttpHeaders
+      ignoreDefinition: true
+
+  - org.openrewrite.java.spring.ChangeSpringPropertyValue:
+      propertyKey: spring.jpa.database-platform
+      newValue: org.hibernate.dialect.PostgreSQLDialect
+      oldValue: "org.hibernate.dialect.PostgreSQL(.+)Dialect"
+      regex: true
+      relaxedBinding: true
+
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: spring.jpa.properties.hibernate.timezone.default_storage
+      value: NORMALIZE
+      comment: Set time zone normalization to the same behaviour Hibernate 5 exhibited to avoid migration issues
+      pathExpressions: ["**/src/main/**/application.yml", "**/src/main/**/application.properties"]
