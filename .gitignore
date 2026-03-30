@@ -1,4 +1,3 @@
-# Created by .ignore support plugin (hsz.mobi)
 target/
 
 ### STS ###
@@ -16,7 +15,5 @@ target/
 *.ipr
 .idea/*
 !.idea/runConfigurations/
-!.idea/codeStyles
-!.idea/codeStyles/*.xml
 
 *.versionsBackup

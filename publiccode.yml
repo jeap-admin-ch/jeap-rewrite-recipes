@@ -1,8 +1,8 @@
-publiccodeYmlVersion: 0.4.0
+publiccodeYmlVersion: 0.5.0
 name: jeap-rewrite-recipes
 applicationSuite: jEAP
-softwareVersion: TODO_softwareVersion
-releaseDate: TODO_releaseDate
+softwareVersion: 1.4.0
+releaseDate: 2026-03-30
 url: "https://github.com/jeap-admin-ch/jeap-rewrite-recipes.git"
 landingURL: "https://github.com/jeap-admin-ch/jeap"
 platforms:
@@ -17,11 +17,14 @@ organisation:
 description:
   en:
     localisedName: jeap-rewrite-recipes
-    shortDescription: TODO (Max. 150 characters)
+    shortDescription: openrewrite.org recipes for migrating apps based on the jEAP Blueprint Microservices
     longDescription: >
-      TODO (Min. 150 characters)
+      openrewrite.org recipes for migrating apps based on the jEAP Blueprint Microservices. Used by the jEAP CLI to
+      automated Spring Boot and Spring Framework version migrations, as well as other code refactorings.
     features:
-      - TODO
+      - Framework Version Migrations
+      - Code Refactoring Recipes
+      - Automated Software Lifecycle Management
 legal:
   license: Apache-2.0
 maintenance:

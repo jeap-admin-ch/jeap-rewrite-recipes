@@ -1,8 +1,9 @@
-# openrewrite.org recipes for migrating apps based on the jEAP Blueprint Microservices
+# Recipes for migrating apps based on the jEAP Blueprint Microservices
 
-https://confluence.bit.admin.ch/display/BLUE/Automatisierte+Migration+von+Spring+Boot+2+auf+Spring+Boot+3.1
+Recipes for migrating apps based on the jEAP Blueprint Microservices. Used by the jEAP CLI to
+automated Spring Boot and Spring Framework version migrations, as well as other code refactorings.
 
-https://confluence.bit.admin.ch/display/JEAP/jEAP+Migrations
+See https://github.com/jeap-admin-ch/jeap-cli for available migrations using these recipes.
 
 ## Note
 
