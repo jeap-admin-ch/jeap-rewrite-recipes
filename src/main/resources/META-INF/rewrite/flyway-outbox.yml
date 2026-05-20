@@ -1,0 +1,37 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.flyway.EnsureOutboxColumnMigration
+displayName: Ensure missing outbox column migration exists
+description: >-
+  For Maven/Spring Boot projects using Flyway and outbox persistence, detect schema drift
+  where a required column is expected at runtime but absent from migration history, then
+  generate a new additive Flyway migration (idempotent ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...).
+tags:
+  - flyway
+  - outbox
+  - sql
+recipeList:
+  - ch.admin.bit.jeap.openrewrite.recipe.flyway.AddMissingOutboxColumnMigration:
+      tableName: deferred_message
+      columnName: sampled
+      sqlType: BOOLEAN
+      defaultExpression: FALSE
+      migrationDescriptionSuffix: add_deferred_message_sampled_column
+      dependencyMatchers: ch.admin.bit.jeap:*outbox*,ch.admin.bit.jeap:*db-migration*,ch.admin.bit.jeap:jeap-messaging-*,org.springframework.integration:spring-integration-jdbc,org.flywaydb:flyway-core
+      migrationRoots: src/main/resources/db/migration
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.flyway.AddMissingOutboxColumnMigrationExample
+displayName: Example - deferred_message.sampled migration
+description: >-
+  Example configuration for deferred_message.sampled BOOLEAN NOT NULL DEFAULT FALSE.
+recipeList:
+  - ch.admin.bit.jeap.openrewrite.recipe.flyway.AddMissingOutboxColumnMigration:
+      tableName: deferred_message
+      columnName: sampled
+      sqlType: BOOLEAN
+      defaultExpression: FALSE
+      migrationDescriptionSuffix: add_deferred_message_sampled_column
+      dependencyMatchers: ch.admin.bit.jeap:*outbox*,ch.admin.bit.jeap:*db-migration*,ch.admin.bit.jeap:jeap-messaging-*,org.springframework.integration:spring-integration-jdbc,org.flywaydb:flyway-core
+      migrationRoots: src/main/resources/db/migration

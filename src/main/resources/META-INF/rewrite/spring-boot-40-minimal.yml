@@ -31,15 +31,100 @@ preconditions:
   - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025_1
+  # Spring Cloud BOM is already managed by the jEAP Spring Boot 4 parent.
+  - ch.admin.bit.jeap.openrewrite.recipe.maven.RemoveSpringCloudDependenciesBomImport
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
   - org.openrewrite.java.spring.security7.UpgradeSpringSecurity_7_0
+  - ch.admin.bit.jeap.openrewrite.recipe.security.MigrateAntPathRequestMatcher
+  # Spring Boot 4: package moves for web server types — uses text-based import matching
+  # because the old types are removed from the classpath and ChangeType (type-resolution based)
+  # would silently skip them.
+  - ch.admin.bit.jeap.openrewrite.recipe.boot.MigrateSpringBoot4PackageMoves
+  # Spring Boot 4: Jackson2ObjectMapperBuilderCustomizer was removed in favour of
+  # JsonMapperBuilderCustomizer (org.springframework.boot.jackson.autoconfigure).
+  # Also migrates builder.postConfigurer(x -> x.registerModule(y)) → builder.addModule(y).
+  - ch.admin.bit.jeap.openrewrite.recipe.boot.MigrateJackson2ObjectMapperBuilderCustomizer
+  # Kafka 4: DescribeTopicsResult.all() renamed to allTopicNames() — text-based import matching
+  # because compilation fails before the recipe runs.
+  - ch.admin.bit.jeap.openrewrite.recipe.kafka.MigrateKafka4DescribeTopics
+  # Jackson 3: mapping null to primitive types in @JsonCreator constructors now throws by default.
+  # Widens @JsonProperty-annotated primitive params to boxed types (int→Integer, boolean→Boolean, etc.)
+  - ch.admin.bit.jeap.openrewrite.recipe.jackson.MigrateJackson3JsonCreatorPrimitivesToBoxed
+  # Jackson 3: fix class/import name collision when project defines class JsonMapper and
+  # tools.jackson.databind.json.JsonMapper is imported for builder() calls.
+  - ch.admin.bit.jeap.openrewrite.recipe.jackson.FixJackson3JsonMapperNameCollision
+  # Jackson 3: NumberDeserializers.NumberDeserializer usage no longer resolves.
+  # NumberDeserializers moved from deser.std to deser.jdk.
+  - ch.admin.bit.jeap.openrewrite.recipe.jackson.MigrateJackson3NumberDeserializersUsage
+  # Jackson 3: Normalize Jackson APIs after migration.
+  - ch.admin.bit.jeap.openrewrite.recipe.jackson.NormalizeJacksonNodeApis
+  # Jackson 3: Restore Jackson 2 default behavior for null-to-primitive deserialization
+  - ch.admin.bit.jeap.openrewrite.recipe.jackson.AddJacksonFailOnNullForPrimitivesToApplicationProperties
+  - ch.admin.bit.jeap.openrewrite.recipe.jackson.AddJacksonFailOnNullForPrimitivesToApplicationYaml
+  # Spring Boot 4: spring-retry is no longer managed. Spring Framework 7 provides built-in retry
+  # via org.springframework.resilience.annotation. Migrates @Retryable, @EnableRetry→@EnableResilientMethods,
+  # RetryTemplate, and maxAttempts→maxRetries (value adjusted: maxRetries = maxAttempts - 1).
+  # NOTE: @Backoff and @Recover have no direct equivalent — left as-is for manual resolution.
+  - ch.admin.bit.jeap.openrewrite.recipe.resilience.MigrateSpringRetryToSpringFramework7
+  # If no DB driver and no datasource URL are detected in the project, remove Flyway/Liquibase
+  # and replace Spring Data JPA dependencies with Spring Data Commons to avoid DataSource startup failures.
+  - ch.admin.bit.jeap.openrewrite.recipe.boot.RemoveDatabaseAutoConfigDependenciesWhenNoDriverOrDatasource
+  # Test profile safeguard: add auto-config excludes only when no datasource/r2dbc URL exists.
+  - ch.admin.bit.jeap.openrewrite.recipe.boot.AddTestDatasourceAutoConfigExcludesWhenNoDatasourceUrl
+  # Spring Kafka 4: Jackson type renames (DefaultKafkaHeaderMapper → JsonKafkaHeaderMapper, etc.)
+  - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
   - org.openrewrite.java.spring.batch.SpringBatch5To6Migration
   - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
   - org.openrewrite.java.spring.boot4.ReplaceMockBeanAndSpyBean
+  # Fallback for cases where ReplaceMockBeanAndSpyBean does not trigger due missing type attribution.
+  - ch.admin.bit.jeap.openrewrite.recipe.boot.FallbackMigrateMockBeanToMockitoBean
   - org.openrewrite.hibernate.MigrateToHibernate71
+  # Hibernate 7: @Where → @SQLRestriction, @WhereJoinTable → @SQLJoinTableRestriction,
+  # and @Loader removed (superseded by @SQLRestriction which now auto-applies during load-by-id).
+  # Not covered by the MigrateToHibernate71 recipe above.
+  - ch.admin.bit.jeap.openrewrite.recipe.hibernate.MigrateHibernate7RemovedAnnotations
   - org.openrewrite.java.testing.testcontainers.Testcontainers2Migration
+  # Testcontainers 2.x removed all shaded packages (org.testcontainers.shaded.*).
+  # Strip the shaded prefix so e.g. shaded Apache Commons Lang3 imports use the real package.
+  - ch.admin.bit.jeap.openrewrite.recipe.testcontainers.MigrateTestcontainers2ShadedClasses
+  # Testcontainers 2.x: module artifacts renamed to include testcontainers- prefix.
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.testcontainers
+      oldArtifactId: minio
+      newArtifactId: testcontainers-minio
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.testcontainers
+      oldArtifactId: postgresql
+      newArtifactId: testcontainers-postgresql
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.testcontainers
+      oldArtifactId: junit-jupiter
+      newArtifactId: testcontainers-junit-jupiter
+  - ch.admin.bit.jeap.openrewrite.recipe.testcontainers.MigrateTestcontainersArtifacts
+  # Add test-scoped Testcontainers module dependencies based on imports (incl. junit-jupiter, minio, etc.).
+  - ch.admin.bit.jeap.openrewrite.recipe.springboot.test.AddTestcontainersDeps
   - org.openrewrite.java.springdoc.UpgradeSpringDoc_3_0
   - org.openrewrite.java.spring.boot4.MigrateToModularStarters
+  # Spring Boot 4 modular test starters: MigrateToModularStarters uses type-resolution-based onlyIfUsing
+  # which fails when the old SB3 types are gone from the classpath (after parent upgrade to SB4).
+  # This text-based ScanningRecipe correctly detects @DataJpaTest/@AutoConfigureTestDatabase usages
+  # in both SB3 and SB4 package names, and adds spring-boot-starter-data-jpa-test (test scope).
+  - ch.admin.bit.jeap.openrewrite.recipe.springboot.test.AddDataJpaTestStarterDep
+  # Spring Boot 4 modular test starters: split observability test annotations into separate test starters.
+  - ch.admin.bit.jeap.openrewrite.recipe.springboot.test.AddSpringBootObservabilityTestDeps
+  # Spring Boot 4 modular starter split: FlywayProperties now lives in spring-boot-flyway.
+  - ch.admin.bit.jeap.openrewrite.recipe.springboot.test.AddSpringBootFlywayModuleDep
+  # Detect outbox schema drift and generate additive Flyway migration when deferred_message.sampled is missing.
+  - ch.admin.bit.jeap.openrewrite.recipe.flyway.AddMissingOutboxColumnMigration:
+      tableName: deferred_message
+      columnName: sampled
+      sqlType: BOOLEAN
+      defaultExpression: FALSE
+      migrationDescriptionSuffix: add_deferred_message_sampled_column
+      dependencyMatchers: ch.admin.bit.jeap:*outbox*,ch.admin.bit.jeap:*db-migration*,ch.admin.bit.jeap:jeap-messaging-*,org.springframework.integration:spring-integration-jdbc,org.flywaydb:flyway-core
+      migrationRoots: src/main/resources/db/migration
+  # Spring Boot 4: Normalize ObjectMapper configuration to use Jackson2ObjectMapperBuilderCustomizer
+  - ch.admin.bit.jeap.openrewrite.recipe.boot.NormalizeObjectMapperConfiguration
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
@@ -157,3 +242,42 @@ recipeList:
       oldGroupId: org.springframework.boot
       oldArtifactId: spring-boot-starter-aop
       newArtifactId: spring-boot-starter-aspectj
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.jackson.AddJacksonFailOnNullForPrimitivesToApplicationProperties
+displayName: Add FAIL_ON_NULL_FOR_PRIMITIVES=false to application.properties
+description: >-
+  Jackson 3 changed FAIL_ON_NULL_FOR_PRIMITIVES default to true. This recipe adds
+  spring.jackson.deserialization.fail-on-null-for-primitives=false to application.properties
+  only (not profile-specific files) to restore the Jackson 2.x default behavior.
+preconditions:
+  - org.openrewrite.FindSourceFiles:
+      filePattern: "**/application.properties"
+recipeList:
+  - org.openrewrite.properties.AddProperty:
+      property: spring.jackson.deserialization.fail-on-null-for-primitives
+      value: "false"
+      comment: "TODO: Jackson 3 changed FAIL_ON_NULL_FOR_PRIMITIVES default to true - evaluate if you want stricter null-for-primitives validation"
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.jackson.AddJacksonFailOnNullForPrimitivesToApplicationYaml
+displayName: Add FAIL_ON_NULL_FOR_PRIMITIVES=false to application.yml
+description: >-
+  Jackson 3 changed FAIL_ON_NULL_FOR_PRIMITIVES default to true. This recipe adds
+  spring.jackson.deserialization.fail-on-null-for-primitives=false to application.yml
+  only (not profile-specific files) to restore the Jackson 2.x default behavior.
+preconditions:
+  - org.openrewrite.FindSourceFiles:
+      filePattern: "**/application.yml"
+recipeList:
+  - org.openrewrite.yaml.MergeYaml:
+      key: "$"
+      yaml: |
+        spring:
+          jackson:
+            deserialization:
+              # TODO: Jackson 3 changed FAIL_ON_NULL_FOR_PRIMITIVES default to true - evaluate if you want stricter null-for-primitives validation
+              fail-on-null-for-primitives: false
+      acceptTheirs: true

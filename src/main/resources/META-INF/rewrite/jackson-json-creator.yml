@@ -1,0 +1,24 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.jackson.HardenJpaJsonCreators
+displayName: Harden Jackson @JsonCreator for JPA JSON domain types
+description: >-
+  Fix ambiguous multi-argument @JsonCreator constructors by forcing property-based mode and
+  adding missing @JsonProperty annotations on constructor parameters.
+tags:
+  - jackson
+  - jpa
+  - json
+recipeList:
+  - ch.admin.bit.jeap.openrewrite.recipe.jackson.HardenJsonCreatorPropertiesMode
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: ch.admin.bit.jeap.openrewrite.recipe.jackson.HardenJpaJsonCreatorsProofOfPossessionOnly
+displayName: Harden Jackson @JsonCreator for ProofOfPossession-like classes only
+description: >-
+  Narrow variant intended for safe rollout: applies hardening only to classes whose fully
+  qualified name matches .*ProofOfPossession.*.
+recipeList:
+  - ch.admin.bit.jeap.openrewrite.recipe.jackson.HardenJsonCreatorPropertiesMode:
+      classNamePattern: ".*ProofOfPossession.*"
