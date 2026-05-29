@@ -65,11 +65,7 @@ public class RemoveSpringCloudDependenciesBomImport extends Recipe {
 
             private boolean isInDependencyManagement() {
                 Object parent = getCursor().getParentOrThrow().getValue();
-                if (!(parent instanceof Xml.Tag parentTag) || !"dependencyManagement".equals(parentTag.getName())) {
-                    return false;
-                }
-                Object grandParent = getCursor().getParentOrThrow().getParentOrThrow().getValue();
-                return grandParent instanceof Xml.Tag grandParentTag && "project".equals(grandParentTag.getName());
+                return parent instanceof Xml.Tag parentTag && "dependencyManagement".equals(parentTag.getName());
             }
         };
     }

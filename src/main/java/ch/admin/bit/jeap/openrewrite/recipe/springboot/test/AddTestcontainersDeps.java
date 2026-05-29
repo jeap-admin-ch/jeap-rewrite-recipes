@@ -10,7 +10,6 @@ import org.openrewrite.xml.tree.Xml;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +20,7 @@ import java.util.Set;
 public class AddTestcontainersDeps extends ScanningRecipe<Map<String, Set<String>>> {
 
     private static final String GROUP_ID = "org.testcontainers";
+
     private static final Map<String, String> IMPORT_PREFIX_TO_ARTIFACT = Map.ofEntries(
             Map.entry("org.testcontainers.junit.jupiter.", "testcontainers-junit-jupiter"),
             Map.entry("org.testcontainers.containers.PostgreSQLContainer", "testcontainers-postgresql"),
@@ -36,7 +36,7 @@ public class AddTestcontainersDeps extends ScanningRecipe<Map<String, Set<String
             Map.entry("org.testcontainers.containers.OracleContainer", "testcontainers-oracle-xe"),
             Map.entry("org.testcontainers.containers.RabbitMQContainer", "testcontainers-rabbitmq"),
             Map.entry("org.testcontainers.containers.RedisContainer", "testcontainers-redis"),
-            Map.entry("org.testcontainers.containers.GenericContainer", ""), // Base artifact is always included if needed
+            Map.entry("org.testcontainers.containers.GenericContainer", ""),
             Map.entry("org.testcontainers.postgresql.", "testcontainers-postgresql"),
             Map.entry("org.testcontainers.mysql.", "testcontainers-mysql"),
             Map.entry("org.testcontainers.mariadb.", "testcontainers-mariadb"),
@@ -55,7 +55,7 @@ public class AddTestcontainersDeps extends ScanningRecipe<Map<String, Set<String
     @Override
     public String getDescription() {
         return "Detects org.testcontainers imports and adds corresponding test-scoped Maven dependencies " +
-               "(including junit-jupiter and module artifacts such as postgresql, kafka, localstack and minio).";
+                "(including junit-jupiter and module artifacts such as postgresql, kafka, localstack and minio).";
     }
 
     @Override
@@ -66,31 +66,39 @@ public class AddTestcontainersDeps extends ScanningRecipe<Map<String, Set<String
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(Map<String, Set<String>> moduleToArtifacts) {
         return new JavaIsoVisitor<>() {
+
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 J.Annotation a = super.visitAnnotation(annotation, ctx);
-                String sourcePath = getCursor().firstEnclosingOrThrow(J.CompilationUnit.class).getSourcePath().toString();
-                if (!isTestPath(sourcePath)) {
+
+                String sourcePath = getJavaTestSourcePathOrNull();
+                if (sourcePath == null) {
+                    return a;
+                }
+
+                if (a.getAnnotationType() == null) {
                     return a;
                 }
 
                 String annotationName = a.getAnnotationType().printTrimmed(getCursor());
                 if ("Testcontainers".equals(annotationName) || annotationName.endsWith(".Testcontainers") ||
-                    "Container".equals(annotationName) || annotationName.endsWith(".Container")) {
+                        "Container".equals(annotationName) || annotationName.endsWith(".Container")) {
                     addArtifact(sourcePath, "testcontainers-junit-jupiter");
                 }
+
                 return a;
             }
 
             @Override
             public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {
                 J.Identifier i = super.visitIdentifier(identifier, ctx);
+
                 if (getCursor().firstEnclosing(J.Import.class) != null) {
                     return i;
                 }
 
-                String sourcePath = getCursor().firstEnclosingOrThrow(J.CompilationUnit.class).getSourcePath().toString();
-                if (!isTestPath(sourcePath)) {
+                String sourcePath = getJavaTestSourcePathOrNull();
+                if (sourcePath == null) {
                     return i;
                 }
 
@@ -104,13 +112,35 @@ public class AddTestcontainersDeps extends ScanningRecipe<Map<String, Set<String
                         }
                     }
                 }
+
                 return i;
+            }
+
+            private String getJavaTestSourcePathOrNull() {
+                J.CompilationUnit cu = getCursor().firstEnclosing(J.CompilationUnit.class);
+                if (cu == null) {
+                    return null;
+                }
+
+                String sourcePath = cu.getSourcePath().toString();
+                if (!sourcePath.endsWith(".java")) {
+                    return null;
+                }
+
+                if (!isTestPath(sourcePath)) {
+                    return null;
+                }
+
+                return sourcePath;
             }
 
             private void addArtifact(String sourcePath, String artifactId) {
                 String moduleRoot = extractModuleRoot(sourcePath);
-                moduleToArtifacts.computeIfAbsent(moduleRoot, k -> Collections.synchronizedSet(new LinkedHashSet<>()))
-                                 .add(artifactId);
+                moduleToArtifacts.computeIfAbsent(
+                                moduleRoot,
+                                k -> Collections.synchronizedSet(new LinkedHashSet<>())
+                        )
+                        .add(artifactId);
             }
 
             private boolean isTestPath(String filePath) {
@@ -124,32 +154,38 @@ public class AddTestcontainersDeps extends ScanningRecipe<Map<String, Set<String
         if (moduleToArtifacts.isEmpty()) {
             return TreeVisitor.noop();
         }
+
         return new MavenIsoVisitor<>() {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
                 String pomPath = document.getSourcePath().toString();
-                String pomModuleRoot = pomPath.contains("/") ? pomPath.substring(0, pomPath.lastIndexOf('/')) : "";
+                String pomModuleRoot = pomPath.contains("/")
+                        ? pomPath.substring(0, pomPath.lastIndexOf('/'))
+                        : "";
+
                 Set<String> artifacts = moduleToArtifacts.get(pomModuleRoot);
                 if (artifacts == null || artifacts.isEmpty()) {
                     return document;
                 }
+
                 Xml.Document out = document;
                 for (String artifactId : artifacts) {
                     if (isDependencyPresent(out, artifactId)) {
                         continue;
                     }
+
                     out = (Xml.Document) new AddMavenDependencyVisitor(GROUP_ID, artifactId, "test")
                             .visitNonNull(out, ctx);
                 }
+
                 return out;
             }
 
             private boolean isDependencyPresent(Xml.Document document, String artifactId) {
                 for (Xml.Tag tag : document.getRoot().getChildren("dependencies")) {
-                    // Only consider <dependencies> that are direct children of <project>
                     if (tag.getChildren("dependency").stream().anyMatch(d ->
                             GROUP_ID.equals(d.getChildValue("groupId").map(String::trim).orElse(null)) &&
-                            artifactId.equals(d.getChildValue("artifactId").map(String::trim).orElse(null)))) {
+                                    artifactId.equals(d.getChildValue("artifactId").map(String::trim).orElse(null)))) {
                         return true;
                     }
                 }

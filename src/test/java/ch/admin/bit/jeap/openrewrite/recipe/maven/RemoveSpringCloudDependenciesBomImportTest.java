@@ -64,4 +64,67 @@ class RemoveSpringCloudDependenciesBomImportTest implements RewriteTest {
                 )
         );
     }
+
+    @Test
+    void removesBomImportFromProfileDependencyManagement() {
+        rewriteRun(
+                xml(
+                        """
+                        <project xmlns="http://maven.apache.org/POM/4.0.0">
+                          <modelVersion>4.0.0</modelVersion>
+                          <groupId>com.example</groupId>
+                          <artifactId>demo</artifactId>
+                          <version>1.0.0</version>
+                          <profiles>
+                            <profile>
+                              <id>cloud</id>
+                              <dependencyManagement>
+                                <dependencies>
+                                  <dependency>
+                                    <groupId>org.springframework.cloud</groupId>
+                                    <artifactId>spring-cloud-dependencies</artifactId>
+                                    <version>2025.1.1</version>
+                                    <type>pom</type>
+                                    <scope>import</scope>
+                                  </dependency>
+                                  <dependency>
+                                    <groupId>org.springframework.boot</groupId>
+                                    <artifactId>spring-boot-dependencies</artifactId>
+                                    <version>4.0.6</version>
+                                    <type>pom</type>
+                                    <scope>import</scope>
+                                  </dependency>
+                                </dependencies>
+                              </dependencyManagement>
+                            </profile>
+                          </profiles>
+                        </project>
+                        """,
+                        """
+                        <project xmlns="http://maven.apache.org/POM/4.0.0">
+                          <modelVersion>4.0.0</modelVersion>
+                          <groupId>com.example</groupId>
+                          <artifactId>demo</artifactId>
+                          <version>1.0.0</version>
+                          <profiles>
+                            <profile>
+                              <id>cloud</id>
+                              <dependencyManagement>
+                                <dependencies>
+                                  <dependency>
+                                    <groupId>org.springframework.boot</groupId>
+                                    <artifactId>spring-boot-dependencies</artifactId>
+                                    <version>4.0.6</version>
+                                    <type>pom</type>
+                                    <scope>import</scope>
+                                  </dependency>
+                                </dependencies>
+                              </dependencyManagement>
+                            </profile>
+                          </profiles>
+                        </project>
+                        """
+                )
+        );
+    }
 }

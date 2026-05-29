@@ -61,19 +61,35 @@ public class AddSpringBootObservabilityTestDeps extends ScanningRecipe<AddSpring
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 J.Annotation a = super.visitAnnotation(annotation, ctx);
-                String annotationName = a.getAnnotationType().printTrimmed(getCursor());
-                String sourcePath = getCursor().firstEnclosingOrThrow(J.CompilationUnit.class).getSourcePath().toString();
+
+                J.CompilationUnit cu = getCursor().firstEnclosing(J.CompilationUnit.class);
+                if (cu == null) {
+                    return a;
+                }
+
+                String sourcePath = cu.getSourcePath().toString();
+                if (!sourcePath.endsWith(".java")) {
+                    return a;
+                }
 
                 if (!isTestPath(sourcePath)) {
                     return a;
                 }
 
+                if (a.getAnnotationType() == null) {
+                    return a;
+                }
+
+                String annotationName = a.getAnnotationType().printTrimmed(getCursor());
+
                 if (isAnnotationMatch(annotationName, METRICS_TYPES)) {
-                    acc.metricsModules.add(getModuleRoot());
+                    acc.metricsModules.add(extractModuleRoot(sourcePath));
                 }
+
                 if (isAnnotationMatch(annotationName, TRACING_TYPES)) {
-                    acc.tracingModules.add(getModuleRoot());
+                    acc.tracingModules.add(extractModuleRoot(sourcePath));
                 }
+
                 return a;
             }
 
@@ -83,11 +99,6 @@ public class AddSpringBootObservabilityTestDeps extends ScanningRecipe<AddSpring
 
             private boolean isAnnotationMatch(String name, Set<String> types) {
                 return types.contains(name) || types.stream().anyMatch(t -> t.endsWith("." + name));
-            }
-
-            private String getModuleRoot() {
-                return extractModuleRoot(getCursor().firstEnclosingOrThrow(J.CompilationUnit.class)
-                        .getSourcePath().toString());
             }
         };
     }

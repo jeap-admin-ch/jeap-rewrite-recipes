@@ -12,18 +12,18 @@ import java.util.List;
  * Maven XML visitor that appends a dependency element to the {@code <dependencies>} section.
  * No version is added — the dep is expected to be managed by the parent BOM.
  */
-class AddMavenDependencyVisitor extends MavenIsoVisitor<ExecutionContext> {
+public class AddMavenDependencyVisitor extends MavenIsoVisitor<ExecutionContext> {
 
     private final String groupId;
     private final String artifactId;
     private final String version;
     private final String scope;
 
-    AddMavenDependencyVisitor(String groupId, String artifactId, String scope) {
+    public AddMavenDependencyVisitor(String groupId, String artifactId, String scope) {
         this(groupId, artifactId, null, scope);
     }
 
-    AddMavenDependencyVisitor(String groupId, String artifactId, String version, String scope) {
+    public AddMavenDependencyVisitor(String groupId, String artifactId, String version, String scope) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;

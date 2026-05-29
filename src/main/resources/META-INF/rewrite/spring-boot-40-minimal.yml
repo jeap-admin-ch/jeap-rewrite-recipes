@@ -123,7 +123,11 @@ recipeList:
       migrationDescriptionSuffix: add_deferred_message_sampled_column
       dependencyMatchers: ch.admin.bit.jeap:*outbox*,ch.admin.bit.jeap:*db-migration*,ch.admin.bit.jeap:jeap-messaging-*,org.springframework.integration:spring-integration-jdbc,org.flywaydb:flyway-core
       migrationRoots: src/main/resources/db/migration
+  # Spring Boot 4: Add spring-boot-starter-cache if @EnableCaching is used
+  - ch.admin.bit.jeap.openrewrite.recipe.springboot.AddSpringBootStarterCache
   # Spring Boot 4: Normalize ObjectMapper configuration to use Jackson2ObjectMapperBuilderCustomizer
+  # Hibernate 7.1 / Spring Boot 4.0: Migrate Hypersistence Utils
+  - ch.admin.bit.jeap.openrewrite.recipe.maven.MigrateHypersistenceUtils
   - ch.admin.bit.jeap.openrewrite.recipe.boot.NormalizeObjectMapperConfiguration
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot

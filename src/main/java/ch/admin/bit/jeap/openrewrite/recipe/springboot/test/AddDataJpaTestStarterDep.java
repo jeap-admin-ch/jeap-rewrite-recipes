@@ -72,12 +72,30 @@ public class AddDataJpaTestStarterDep extends ScanningRecipe<Set<String>> {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 J.Annotation a = super.visitAnnotation(annotation, ctx);
+
+                J.CompilationUnit cu = getCursor().firstEnclosing(J.CompilationUnit.class);
+                if (cu == null) {
+                    return a;
+                }
+
+                String sourcePath = cu.getSourcePath().toString();
+                if (!sourcePath.endsWith(".java")) {
+                    return a;
+                }
+
+                if (!isTestPath(sourcePath)) {
+                    return a;
+                }
+
+                if (a.getAnnotationType() == null) {
+                    return a;
+                }
+
                 String annotationName = a.getAnnotationType().printTrimmed(getCursor());
-                String sourcePath = getCursor().firstEnclosingOrThrow(J.CompilationUnit.class)
-                                               .getSourcePath().toString();
-                if (isTestPath(sourcePath) && isDataJpaTestAnnotation(annotationName)) {
+                if (isDataJpaTestAnnotation(annotationName)) {
                     modulesNeedingDep.add(extractModuleRoot(sourcePath));
                 }
+
                 return a;
             }
 
@@ -86,7 +104,6 @@ public class AddDataJpaTestStarterDep extends ScanningRecipe<Set<String>> {
             }
         };
     }
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(Set<String> modulesNeedingDep) {
         if (modulesNeedingDep.isEmpty()) {
