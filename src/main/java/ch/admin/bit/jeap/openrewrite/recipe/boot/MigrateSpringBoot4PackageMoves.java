@@ -90,6 +90,14 @@ public class MigrateSpringBoot4PackageMoves extends Recipe {
                     "org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics"),
             Map.entry("org.springframework.boot.test.autoconfigure.actuate.tracing.AutoConfigureTracing",
                     "org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing"),
+            // Spring Boot 4: Prometheus types moved under micrometer metrics autoconfigure
+            Map.entry("org.springframework.boot.actuate.metrics.export.prometheus.PrometheusOutputFormat",
+                    "org.springframework.boot.micrometer.metrics.autoconfigure.export.prometheus.PrometheusOutputFormat"),
+            Map.entry("org.springframework.boot.actuate.metrics.export.prometheus.PrometheusScrapeEndpoint",
+                    "org.springframework.boot.micrometer.metrics.autoconfigure.export.prometheus.PrometheusScrapeEndpoint"),
+            // Spring Boot 4: security auto-configuration package moves
+            Map.entry("org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration",
+                    "org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration"),
             // Spring Data: PropertyReferenceException moved from mapping to core
             Map.entry("org.springframework.data.mapping.PropertyReferenceException",
                     "org.springframework.data.core.PropertyReferenceException"),

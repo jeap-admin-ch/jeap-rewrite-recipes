@@ -1,6 +1,7 @@
 package ch.admin.bit.jeap.openrewrite.recipe.maven;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.maven.MavenParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -10,7 +11,8 @@ class MigrateHypersistenceUtilsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateHypersistenceUtils());
+        spec.recipe(new MigrateHypersistenceUtils())
+                .parser(MavenParser.builder().skipDependencyResolution(true));
     }
 
     @Test

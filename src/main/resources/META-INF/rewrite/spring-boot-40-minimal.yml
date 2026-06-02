@@ -110,6 +110,8 @@ recipeList:
   # This text-based ScanningRecipe correctly detects @DataJpaTest/@AutoConfigureTestDatabase usages
   # in both SB3 and SB4 package names, and adds spring-boot-starter-data-jpa-test (test scope).
   - ch.admin.bit.jeap.openrewrite.recipe.springboot.test.AddDataJpaTestStarterDep
+  # Spring Boot 4 modular test starters: add Web MVC test starter when @AutoConfigureMockMvc is used.
+  - ch.admin.bit.jeap.openrewrite.recipe.springboot.test.AddWebMvcTestStarterDep
   # Spring Boot 4 modular test starters: split observability test annotations into separate test starters.
   - ch.admin.bit.jeap.openrewrite.recipe.springboot.test.AddSpringBootObservabilityTestDeps
   # Spring Boot 4 modular starter split: FlywayProperties now lives in spring-boot-flyway.
@@ -128,6 +130,8 @@ recipeList:
   # Spring Boot 4: Normalize ObjectMapper configuration to use Jackson2ObjectMapperBuilderCustomizer
   # Hibernate 7.1 / Spring Boot 4.0: Migrate Hypersistence Utils
   - ch.admin.bit.jeap.openrewrite.recipe.maven.MigrateHypersistenceUtils
+  # Align Logbook version property used by projects
+  - ch.admin.bit.jeap.openrewrite.recipe.maven.UpdateLogbookVersionProperty
   - ch.admin.bit.jeap.openrewrite.recipe.boot.NormalizeObjectMapperConfiguration
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot

@@ -1,6 +1,7 @@
 package ch.admin.bit.jeap.openrewrite.recipe.springboot;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.maven.MavenParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -196,6 +197,7 @@ class AddSpringBootStarterCacheTest implements RewriteTest {
     @Test
     void doesNotAddDependenciesIfAlreadyPresent() {
         rewriteRun(
+            spec -> spec.parser(MavenParser.builder().skipDependencyResolution(true)),
             pomXml(
                 """
                 <project>

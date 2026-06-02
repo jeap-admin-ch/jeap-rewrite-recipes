@@ -374,4 +374,48 @@ class MigrateSpringBoot4PackageMovesTest implements RewriteTest {
                 """
         ));
     }
+
+    @Test
+    void migratesPrometheusTypes() {
+        rewriteRun(java(
+                """
+                import org.springframework.boot.actuate.metrics.export.prometheus.PrometheusOutputFormat;
+                import org.springframework.boot.actuate.metrics.export.prometheus.PrometheusScrapeEndpoint;
+
+                class PrometheusCfg {
+                    PrometheusOutputFormat format;
+                    PrometheusScrapeEndpoint endpoint;
+                }
+                """,
+                """
+                import org.springframework.boot.micrometer.metrics.autoconfigure.export.prometheus.PrometheusOutputFormat;
+                import org.springframework.boot.micrometer.metrics.autoconfigure.export.prometheus.PrometheusScrapeEndpoint;
+
+                class PrometheusCfg {
+                    PrometheusOutputFormat format;
+                    PrometheusScrapeEndpoint endpoint;
+                }
+                """
+        ));
+    }
+
+    @Test
+    void migratesUserDetailsServiceAutoConfiguration() {
+        rewriteRun(java(
+                """
+                import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
+
+                class SecurityCfg {
+                    UserDetailsServiceAutoConfiguration autoConfiguration;
+                }
+                """,
+                """
+                import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
+
+                class SecurityCfg {
+                    UserDetailsServiceAutoConfiguration autoConfiguration;
+                }
+                """
+        ));
+    }
 }
