@@ -190,6 +190,35 @@ class MigrateAntPathRequestMatcherTest implements RewriteTest {
     }
 
     @Test
+    void migratesWildcardImportWhenTypeIsUnresolved() {
+        rewriteRun(
+                spec -> spec.parser(JavaParser.fromJavaVersion()),
+                java(
+                        """
+                        import org.springframework.security.web.util.matcher.*;
+
+                        class WebSecurityConfig {
+                            void configure() {
+                                var api = new AntPathRequestMatcher("/api/**");
+                                var matcher = new NegatedRequestMatcher(api);
+                            }
+                        }
+                        """,
+                        """
+                        import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+                        import org.springframework.security.web.util.matcher.*;
+
+                        class WebSecurityConfig {
+                            void configure() {
+                                var api = PathPatternRequestMatcher.pathPattern("/api/**");
+                                var matcher = new NegatedRequestMatcher(api);
+                            }
+                        }
+                        """
+                ));
+    }
+
+    @Test
     void noChangeWhenAntPathRequestMatcherNotUsed() {
         rewriteRun(java(
                 """

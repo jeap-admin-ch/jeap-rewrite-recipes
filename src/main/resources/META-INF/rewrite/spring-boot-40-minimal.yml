@@ -36,6 +36,10 @@ recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
   - org.openrewrite.java.spring.security7.UpgradeSpringSecurity_7_0
   - ch.admin.bit.jeap.openrewrite.recipe.security.MigrateAntPathRequestMatcher
+  # JUnit 4 Assert can remain unresolved after the parent upgrade; migrate the explicit assertTrue import.
+  - ch.admin.bit.jeap.openrewrite.recipe.testing.MigrateJUnit4AssertTrue
+  # Spring Framework 7 can expose MediaType ambiguities when Spring HTTP is imported with a wildcard.
+  - ch.admin.bit.jeap.openrewrite.recipe.boot.EnsureExplicitSpringHttpMediaTypeImport
   # Spring Boot 4: package moves for web server types — uses text-based import matching
   # because the old types are removed from the classpath and ChangeType (type-resolution based)
   # would silently skip them.

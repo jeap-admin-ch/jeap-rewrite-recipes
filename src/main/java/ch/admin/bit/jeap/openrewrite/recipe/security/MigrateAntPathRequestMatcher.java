@@ -35,6 +35,8 @@ public class MigrateAntPathRequestMatcher extends Recipe {
 
     private static final String ANT_FQN =
             "org.springframework.security.web.util.matcher.AntPathRequestMatcher";
+    private static final String ANT_PACKAGE_WILDCARD =
+            "org.springframework.security.web.util.matcher.*";
     private static final String PATH_PATTERN_FQN =
             "org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher";
     private static final String HTTP_METHOD_FQN =
@@ -60,14 +62,17 @@ public class MigrateAntPathRequestMatcher extends Recipe {
         TreeVisitor<?, ExecutionContext> hasAntImport = new JavaIsoVisitor<>() {
             @Override
             public J.Import visitImport(J.Import anImport, ExecutionContext ctx) {
+                String importedType = anImport.getQualid().printTrimmed(getCursor());
                 if (!anImport.isStatic() &&
-                        ANT_FQN.equals(anImport.getQualid().printTrimmed(getCursor()))) {
+                        (ANT_FQN.equals(importedType) || ANT_PACKAGE_WILDCARD.equals(importedType))) {
                     return SearchResult.found(anImport);
                 }
                 return anImport;
             }
         };
         return Preconditions.check(hasAntImport, new JavaVisitor<>() {
+
+            boolean hasExplicitAntImport;
 
             // new AntPathRequestMatcher(pattern)
             final JavaTemplate oneArgTemplate = JavaTemplate
@@ -82,6 +87,15 @@ public class MigrateAntPathRequestMatcher extends Recipe {
                     .build();
 
             @Override
+            public J visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
+                hasExplicitAntImport = compilationUnit.getImports().stream()
+                        .filter(anImport -> !anImport.isStatic())
+                        .anyMatch(anImport -> ANT_FQN.equals(
+                                anImport.getQualid().printTrimmed(getCursor())));
+                return super.visitCompilationUnit(compilationUnit, ctx);
+            }
+
+            @Override
             public J visitMethodInvocation(J.MethodInvocation method,
                                            ExecutionContext ctx) {
                 method = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
@@ -92,7 +106,7 @@ public class MigrateAntPathRequestMatcher extends Recipe {
                     J result = oneArgTemplate.apply(
                             getCursor(), method.getCoordinates().replace(), args.get(0));
                     maybeAddImport(PATH_PATTERN_FQN, null, false);
-                    doAfterVisit(new RemoveImport<>(ANT_FQN, true));
+                    removeExplicitAntImport();
                     return result;
                 }
                 return method;
@@ -114,7 +128,7 @@ public class MigrateAntPathRequestMatcher extends Recipe {
                     J result = oneArgTemplate.apply(
                             getCursor(), newClass.getCoordinates().replace(), args.get(0));
                     maybeAddImport(PATH_PATTERN_FQN, null, false);
-                    doAfterVisit(new RemoveImport<>(ANT_FQN, true));
+                    removeExplicitAntImport();
                     return result;
                 }
 
@@ -130,11 +144,17 @@ public class MigrateAntPathRequestMatcher extends Recipe {
                             httpMethod, pattern);
                     maybeAddImport(PATH_PATTERN_FQN, null, false);
                     maybeAddImport(HTTP_METHOD_FQN, null, false);
-                    doAfterVisit(new RemoveImport<>(ANT_FQN, true));
+                    removeExplicitAntImport();
                     return result;
                 }
 
                 return newClass;
+            }
+
+            private void removeExplicitAntImport() {
+                if (hasExplicitAntImport) {
+                    doAfterVisit(new RemoveImport<>(ANT_FQN, true));
+                }
             }
 
             private boolean isAntPathRequestMatcherConstructor(J.NewClass newClass) {
