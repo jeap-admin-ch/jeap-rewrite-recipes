@@ -23,6 +23,7 @@ Apache License Version 2.0
  * error-prone annotations - [com.google.errorprone:error_prone_annotations](https://errorprone.info/error_prone_annotations)
  * JavaEWAH - [com.googlecode.javaewah:JavaEWAH](https://github.com/lemire/javaewah)
  * univocity-parsers - [com.univocity:univocity-parsers](http://github.com/univocity/univocity-parsers)
+ * Apache Commons Logging - [commons-logging:commons-logging](https://commons.apache.org/proper/commons-logging/)
  * Failsafe - [dev.failsafe:failsafe](https://failsafe.dev/failsafe)
  * micrometer-commons - [io.micrometer:micrometer-commons](https://github.com/micrometer-metrics/micrometer)
  * micrometer-core - [io.micrometer:micrometer-core](https://github.com/micrometer-metrics/micrometer)
@@ -57,7 +58,6 @@ Apache License Version 2.0
  * Spring Context - [org.springframework:spring-context](https://github.com/spring-projects/spring-framework)
  * Spring Core - [org.springframework:spring-core](https://github.com/spring-projects/spring-framework)
  * Spring Expression Language (SpEL) - [org.springframework:spring-expression](https://github.com/spring-projects/spring-framework)
- * Spring Commons Logging Bridge - [org.springframework:spring-jcl](https://github.com/spring-projects/spring-framework)
  * Spring Web - [org.springframework:spring-web](https://github.com/spring-projects/spring-framework)
  * spring-security-core - [org.springframework.security:spring-security-core](https://spring.io/projects/spring-security)
  * spring-security-crypto - [org.springframework.security:spring-security-crypto](https://spring.io/projects/spring-security)
@@ -91,12 +91,12 @@ Eclipse Distribution License - v 1.0
 Eclipse Public License v2.0
 -------------------------------
 
- * JUnit Jupiter (Aggregator) - [org.junit.jupiter:junit-jupiter](https://junit.org/junit5/)
- * JUnit Jupiter API - [org.junit.jupiter:junit-jupiter-api](https://junit.org/junit5/)
- * JUnit Jupiter Engine - [org.junit.jupiter:junit-jupiter-engine](https://junit.org/junit5/)
- * JUnit Jupiter Params - [org.junit.jupiter:junit-jupiter-params](https://junit.org/junit5/)
- * JUnit Platform Commons - [org.junit.platform:junit-platform-commons](https://junit.org/junit5/)
- * JUnit Platform Engine API - [org.junit.platform:junit-platform-engine](https://junit.org/junit5/)
+ * JUnit Jupiter (Aggregator) - [org.junit.jupiter:junit-jupiter](https://junit.org/)
+ * JUnit Jupiter API - [org.junit.jupiter:junit-jupiter-api](https://junit.org/)
+ * JUnit Jupiter Engine - [org.junit.jupiter:junit-jupiter-engine](https://junit.org/)
+ * JUnit Jupiter Params - [org.junit.jupiter:junit-jupiter-params](https://junit.org/)
+ * JUnit Platform Commons - [org.junit.platform:junit-platform-commons](https://junit.org/)
+ * JUnit Platform Engine API - [org.junit.platform:junit-platform-engine](https://junit.org/)
 
 GNU General Public License, version 2 (GPL2), with the classpath exception
 -------------------------------
@@ -121,7 +121,6 @@ Public Domain
 -------------------------------
 
  * HdrHistogram - [org.hdrhistogram:HdrHistogram](http://hdrhistogram.github.io/HdrHistogram/)
- * LatencyUtils - [org.latencyutils:LatencyUtils](http://latencyutils.github.io/LatencyUtils/)
 
 The BSD 2-Clause License
 -------------------------------

@@ -11,6 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Migrate `AntPathRequestMatcher` usages imported through a wildcard without removing other matcher imports.
 - Migrate remaining JUnit 4 `assertTrue` imports and explicitly import Spring HTTP `MediaType` when required.
+- Initialize plain Mockito `@Mock` and `@Captor` fields in Spring tests through `MockitoExtension`.
 
 ## [1.5.3] - 2026-06-02
 

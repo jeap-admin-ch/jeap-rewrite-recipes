@@ -13,8 +13,7 @@ class MigrateAntPathRequestMatcherTest implements RewriteTest {
     public void defaults(org.openrewrite.test.RecipeSpec spec) {
         spec.recipe(new MigrateAntPathRequestMatcher())
             .parser(JavaParser.fromJavaVersion().classpath("spring-security-web"))
-            // PathPatternRequestMatcher lives in Spring Security 7 which is not on the 6.x test
-            // classpath, so the output will have unresolved type info — that is expected here.
+            // AntPathRequestMatcher was removed in Spring Security 7, so source usages can be unresolved.
             .typeValidationOptions(TypeValidation.none());
     }
 
