@@ -27,7 +27,7 @@
     </licenses>
 
     <artifactId>jeap-rewrite-recipes</artifactId>
-    <version>1.5.4-SNAPSHOT</version>
+    <version>1.5.5-SNAPSHOT</version>
     <packaging>jar</packaging>
     <groupId>ch.admin.bit.jeap.openrewrite.recipe</groupId>
     <description>openrewrite.org recipes for apps based on jEAP Blueprint Microservice</description>
@@ -35,7 +35,7 @@
     <parent>
         <artifactId>jeap-internal-spring-boot-parent</artifactId>
         <groupId>ch.admin.bit.jeap</groupId>
-        <version>8.5.4</version>
+        <version>8.5.5</version>
     </parent>
 
     <properties>

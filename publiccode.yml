@@ -1,7 +1,7 @@
 publiccodeYmlVersion: 0.5.0
 name: jeap-rewrite-recipes
 applicationSuite: jEAP
-softwareVersion: 1.5.4
+softwareVersion: 1.5.5
 releaseDate: 2026-07-27
 url: "https://github.com/jeap-admin-ch/jeap-rewrite-recipes.git"
 landingURL: "https://github.com/jeap-admin-ch/jeap"

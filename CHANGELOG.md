@@ -5,13 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.5] - 2026-07-27
+
+### Fixed
+
+- Initialize plain Mockito `@Mock` and `@Captor` fields in Spring tests through `MockitoExtension`.
+
 ## [1.5.4] - 2026-07-23
 
 ### Fixed
 
 - Migrate `AntPathRequestMatcher` usages imported through a wildcard without removing other matcher imports.
 - Migrate remaining JUnit 4 `assertTrue` imports and explicitly import Spring HTTP `MediaType` when required.
-- Initialize plain Mockito `@Mock` and `@Captor` fields in Spring tests through `MockitoExtension`.
 
 ## [1.5.3] - 2026-06-02
 
