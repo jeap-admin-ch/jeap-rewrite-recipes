@@ -4,6 +4,12 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.java.Assertions.java;
 
 class AddMockitoExtensionToSpringTestsTest implements RewriteTest {
@@ -12,6 +18,16 @@ class AddMockitoExtensionToSpringTestsTest implements RewriteTest {
     public void defaults(org.openrewrite.test.RecipeSpec spec) {
         spec.recipe(new AddMockitoExtensionToSpringTests())
                 .typeValidationOptions(TypeValidation.none());
+    }
+
+    @Test
+    void isRegisteredInSpringBoot4Migration() throws IOException {
+        InputStream resource = getClass().getResourceAsStream("/META-INF/rewrite/spring-boot-40-minimal.yml");
+        assertNotNull(resource);
+        try (resource) {
+            String recipeDefinition = new String(resource.readAllBytes(), StandardCharsets.UTF_8);
+            assertTrue(recipeDefinition.contains("  - " + AddMockitoExtensionToSpringTests.class.getName()));
+        }
     }
 
     @Test
