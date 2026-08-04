@@ -36,6 +36,8 @@ public class MigrateSpringBoot4PackageMoves extends Recipe {
             Map.entry("org.springframework.boot.web.servlet.error.DefaultErrorAttributes",
                     "org.springframework.boot.webmvc.error.DefaultErrorAttributes"),
             // Spring Boot 4 / spring-boot-health: health contributor types moved from actuator
+            Map.entry("org.springframework.boot.actuate.health.*",
+                    "org.springframework.boot.health.contributor.*"),
             Map.entry("org.springframework.boot.actuate.health.Health",
                     "org.springframework.boot.health.contributor.Health"),
             Map.entry("org.springframework.boot.actuate.health.HealthIndicator",

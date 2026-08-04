@@ -161,6 +161,32 @@ class MigrateSpringBoot4PackageMovesTest implements RewriteTest {
     }
 
     @Test
+    void migratesWildcardHealthContributorImport() {
+        rewriteRun(java(
+                """
+                import org.springframework.boot.actuate.health.*;
+
+                class MyHealthIndicator implements HealthIndicator {
+                    @Override
+                    public Health health() {
+                        return Health.up().build();
+                    }
+                }
+                """,
+                """
+                import org.springframework.boot.health.contributor.*;
+
+                class MyHealthIndicator implements HealthIndicator {
+                    @Override
+                    public Health health() {
+                        return Health.up().build();
+                    }
+                }
+                """
+        ));
+    }
+
+    @Test
     void migratesCompositeHealthContributor() {
         rewriteRun(java(
                 """

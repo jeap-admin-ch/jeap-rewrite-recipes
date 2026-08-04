@@ -39,6 +39,63 @@ class MigrateSpringRetryToSpringFramework7Test implements RewriteTest {
     }
 
     @Test
+    void migratesRetryableImportedThroughWildcard() {
+        rewriteRun(java(
+                """
+                import org.springframework.retry.annotation.*;
+
+                class MyService {
+                    @Retryable(
+                            value = {RuntimeException.class},
+                            maxAttempts = 3,
+                            backoff = @Backoff(delay = 200))
+                    public void callExternalService() {}
+                }
+                """,
+                """
+                import org.springframework.resilience.annotation.Retryable;
+
+                class MyService {
+                    @Retryable(
+                            value = {RuntimeException.class},
+                            maxRetries = 2,
+                            delay = 200)
+                    public void callExternalService() {}
+                }
+                """
+        ));
+    }
+
+    @Test
+    void retainsWildcardWhenRecoverRemains() {
+        rewriteRun(java(
+                """
+                import org.springframework.retry.annotation.*;
+
+                class MyService {
+                    @Retryable(maxAttempts = 3)
+                    public void callExternalService() {}
+
+                    @Recover
+                    public void recover(RuntimeException exception) {}
+                }
+                """,
+                """
+                import org.springframework.resilience.annotation.Retryable;
+                import org.springframework.retry.annotation.*;
+
+                class MyService {
+                    @Retryable(maxRetries = 2)
+                    public void callExternalService() {}
+
+                    @Recover
+                    public void recover(RuntimeException exception) {}
+                }
+                """
+        ));
+    }
+
+    @Test
     void migratesEnableRetryToEnableResilientMethods() {
         rewriteRun(java(
                 """

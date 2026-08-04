@@ -72,6 +72,7 @@ recipeList:
   # RetryTemplate, and maxAttempts→maxRetries (value adjusted: maxRetries = maxAttempts - 1).
   # NOTE: @Backoff and @Recover have no direct equivalent — left as-is for manual resolution.
   - ch.admin.bit.jeap.openrewrite.recipe.resilience.MigrateSpringRetryToSpringFramework7
+  - ch.admin.bit.jeap.openrewrite.recipe.resilience.RemoveSpringRetryDependencyIfUnused
   # If no DB driver and no datasource URL are detected in the project, remove Flyway/Liquibase
   # and replace Spring Data JPA dependencies with Spring Data Commons to avoid DataSource startup failures.
   - ch.admin.bit.jeap.openrewrite.recipe.boot.RemoveDatabaseAutoConfigDependenciesWhenNoDriverOrDatasource

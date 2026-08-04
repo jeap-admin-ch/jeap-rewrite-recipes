@@ -15,7 +15,9 @@ import org.openrewrite.marker.SearchResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Migrates {@code spring-retry} annotations to Spring Framework 7's built-in resilience support,
@@ -60,6 +62,16 @@ public class MigrateSpringRetryToSpringFramework7 extends Recipe {
             "org.springframework.core.retry.RetryTemplate";
 
     private static final String OLD_RETRY_PACKAGE_PREFIX = "org.springframework.retry.";
+    private static final String OLD_RETRY_ANNOTATION_WILDCARD =
+            "org.springframework.retry.annotation.*";
+
+    private static final Set<String> UNMIGRATED_SPRING_RETRY_ANNOTATION_TYPES = Set.of(
+            "AnnotationAwareRetryOperationsInterceptor",
+            "CircuitBreaker",
+            "Recover",
+            "RecoverAnnotationRecoveryHandler",
+            "RetryConfiguration"
+    );
 
     @Override
     public String getDisplayName() {
@@ -92,6 +104,37 @@ public class MigrateSpringRetryToSpringFramework7 extends Recipe {
         return Preconditions.check(hasSpringRetryImport, new JavaIsoVisitor<>() {
 
             @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit compilationUnit, ExecutionContext ctx) {
+                J.CompilationUnit cu = super.visitCompilationUnit(compilationUnit, ctx);
+                boolean hasWildcardImport = cu.getImports().stream()
+                        .anyMatch(anImport -> OLD_RETRY_ANNOTATION_WILDCARD.equals(
+                                anImport.getQualid().printTrimmed(getCursor())));
+                if (!hasWildcardImport) {
+                    return cu;
+                }
+
+                AtomicBoolean hasUnmigratedType = new AtomicBoolean();
+                new JavaIsoVisitor<AtomicBoolean>() {
+                    @Override
+                    public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean found) {
+                        J.Identifier id = super.visitIdentifier(identifier, found);
+                        if (UNMIGRATED_SPRING_RETRY_ANNOTATION_TYPES.contains(id.getSimpleName())) {
+                            found.set(true);
+                        }
+                        return id;
+                    }
+                }.visit(cu, hasUnmigratedType);
+
+                if (hasUnmigratedType.get()) {
+                    return cu;
+                }
+                return cu.withImports(cu.getImports().stream()
+                        .filter(anImport -> !OLD_RETRY_ANNOTATION_WILDCARD.equals(
+                                anImport.getQualid().printTrimmed(getCursor())))
+                        .toList());
+            }
+
+            @Override
             public J.Import visitImport(J.Import anImport, ExecutionContext ctx) {
                 if (anImport.isStatic()) {
                     return anImport;
@@ -120,12 +163,17 @@ public class MigrateSpringRetryToSpringFramework7 extends Recipe {
 
                 // @EnableRetry → @EnableResilientMethods (also changes the identifier name)
                 if ("EnableRetry".equals(id.getSimpleName())) {
+                    maybeAddImport(NEW_ENABLE_RESILIENT_METHODS_FQN, null, false);
                     J.Identifier newId = id.withSimpleName("EnableResilientMethods")
                             .withType(JavaType.ShallowClass.build(NEW_ENABLE_RESILIENT_METHODS_FQN));
                     return annotation.withAnnotationType(newId);
                 }
 
                 // @Retryable(maxAttempts = N) → @Retryable(maxRetries = N-1)
+                if ("Retryable".equals(id.getSimpleName())) {
+                    maybeAddImport(NEW_RETRYABLE_FQN, null, false);
+                }
+
                 if ("Retryable".equals(id.getSimpleName()) && annotation.getArguments() != null) {
                     List<Expression> args = annotation.getArguments();
                     List<Expression> newArgs = new ArrayList<>();
