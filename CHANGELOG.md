@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-09-17
+
+### Removed
+- Removed the explicit version on the test-scoped `org.springframework.security:spring-security-web`: `jeap-internal-spring-boot-parent` already manages it at the same 7.1.1, so the recipe tests now compile their fixture classpath against the Spring Security version the platform ships.
+
 ## [2.0.0] - 2026-09-17
 
 ### Dependencies
