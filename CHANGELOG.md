@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-09-17
+
+### Dependencies
+- **ch.admin.bit.jeap:jeap-internal-spring-boot-parent**: 8.5.5 → 9.7.1 (major)
+- **org.openrewrite:rewrite-bom**: 8.81.6 → 8.90.4 (minor)
+- **org.springframework.security:spring-security-web**: 7.1.0 → 7.1.1 (patch)
+
 ## [1.5.6] - 2026-08-04
 
 ### Fixed
